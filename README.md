@@ -1,0 +1,1 @@
+We are seeking skilled HTML, CSS, and JavaScript developers to help expand and enhance our project, Authify. Our goal is to create a seamless and secure user authentication experience with modern, user-friendly designs. If you have a passion for crafting elegant interfaces and robust functionality, we would love to collaborate with you to take Authify to the next level.
