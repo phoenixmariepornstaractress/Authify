@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Authentication</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background 0.3s ease-in-out;
+            color: #fff;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            max-width: 90%;
+            transition: box-shadow 0.3s ease-in-out;
+            color: #333;
+        }
+
+        .container:hover {
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 8px rgba(106, 17, 203, 0.5);
+            outline: none;
+        }
+
+        .form-group input::placeholder, .form-group select::placeholder {
+            color: #aaa;
+        }
+
+        .form-group .show-password {
+            display: flex;
+            align-items: center;
+            margin-top: -10px;
+        }
+
+        .form-group .show-password input {
+            margin-right: 10px;
+        }
+
+        .form-group .captcha {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-group .captcha img {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            background-color: #6a11cb;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #2575fc;
+            transform: scale(1.05);
+        }
+
+        p {
+            margin-top: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        a {
+            color: #6a11cb;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #2575fc;
+            text-decoration: underline;
+        }
+
+        /* Tooltip */
+        .form-group .tooltip {
+            visibility: hidden;
+            width: 180px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -90px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .form-group .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .form-group input:focus + .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Loader */
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 6px solid #6a11cb;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Dark mode */
+        body.dark-mode {
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: #ddd;
+        }
+
+        .container.dark-mode {
+            background-color: #333;
+            color: #ddd;
+        }
+
+        button.dark-mode {
+            background-color: #555;
+        }
+
+        a.dark-mode {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div id="form-container">
+            <div class="loader" id="loader"></div>
+            <form id="login-form" class="form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Enter your username" required>
+                    <span class="tooltip">Please enter your username.</span>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                    <span class="tooltip">Please enter your password.</span>
+                    <div class="show-password">
+                        <input type="checkbox" id="show-password"> Show Password
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="remember-me"> Remember Me
+                </div>
+                <div class="form-group captcha">
+                    <label for="captcha">Captcha</label>
+                    <input type="text" id="captcha" placeholder="Enter captcha" required>
+                    <img src="captcha-placeholder.png" alt="captcha" onclick="refreshCaptcha()">
+                </div>
+                <button type="submit">Login</button>
+                <p><a href="#" onclick="showForgotForm()">Forgot Password?</a></p>
+                <p><a href="#" onclick="showRegisterForm()">Don't have an account? Register</a></p>
+            </form>
+
+            <form id="register-form" class="form" style="display: none;">
+                <h2>Register</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" placeholder="Enter your username" required>
+                    <span class="tooltip">Choose a unique username.</span>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" placeholder="Enter your email" required>
+                    <span class="tooltip">Enter a valid email address.</span>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" placeholder="Enter your password" required>
+                    <span class="tooltip">Choose a strong password.</span>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm your password" required>
+                    <span class="tooltip">Re-enter your password.</span>
+                </div>
+                <button type="submit">Register</button>
+                <p><a href="#" onclick="showLoginForm()">Already have an account? Login</a></p>
+            </form>
+
+            <form id="forgot-form" class="form" style="display: none;">
+                <h2>Forgot Password</h2>
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" placeholder="Enter your email" required>
+                    <span class="tooltip">Enter the email associated with your account.</span>
+                </div>
+                <button type="submit">Submit</button>
+                <p><a href="#" onclick="showLoginForm()">Back to Login</a></p>
+            </form>
+        </div>
+        <button onclick="toggleDarkMode()" style="margin-top: 20px;">Toggle Dark Mode</button>
+    </div>
+    <script>
+        function showLoginForm() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('forgot-form').style.display = 'none';
+        }
+
+        function showRegisterForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('forgot-form').style.display = 'none';
+        }
+
+        function showForgotForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('forgot-form').style.display = 'block';
+        }
+
+        function refreshCaptcha() {
+            document.querySelector('.captcha img').src = 'captcha-placeholder.png?' + new Date().getTime();
+        }
+
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            toggleLoader(true);
+            setTimeout(function() {
+                alert('Login functionality is not implemented.');
+                toggleLoader(false);
+            }, 1000);
+        });
+
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password === confirmPassword) {
+                toggleLoader(true);
+                setTimeout(function() {
+                    alert('Registration functionality is not implemented.');
+                    toggleLoader(false);
+                }, 1000);
+            } else {
+                alert('Passwords do not match.');
+            }
+        });
+
+        document.getElementById('forgot-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            toggleLoader(true);
+            setTimeout(function() {
+                alert('Password recovery functionality is not implemented.');
+                toggleLoader(false);
+            }, 1000);
+        });
+
+        document.getElementById('show-password').addEventListener('change', function() {
+            const passwordInput = document.getElementById('login-password');
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+
+        function toggleLoader(show) {
+            const loader = document.getElementById('loader');
+            if (show) {
+                loader.style.display = 'block';
+            } else {
+                loader.style.display = 'none';
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelector('.container').classList.toggle('dark-mode');
+            document.querySelectorAll('button').forEach(button => button.classList.toggle('dark-mode'));
+            document.querySelectorAll('a').forEach(a => a.classList.toggle('dark-mode'));
+        }
+    </script>
+</body>
+</html>
